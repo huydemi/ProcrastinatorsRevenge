@@ -8,6 +8,8 @@ The app fetches address data using CoreLocation, then finds the quickest route b
 
 ![screenshot](https://koenig-media.raywenderlich.com/uploads/2015/07/starter_screenshots1.png)
 
+![screenshot](https://koenig-media.raywenderlich.com/uploads/2015/07/Route_1.png)
+
 ---
 
 Source:
