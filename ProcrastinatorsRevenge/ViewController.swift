@@ -34,9 +34,22 @@ class ViewController: UIViewController {
   
   var originalTopMargin: CGFloat!
   
+  let locationManager = CLLocationManager()
+  var locationTuples: [(textField: UITextField, mapItem: MKMapItem?)]!
+  
   override func viewDidLoad() {
     super.viewDidLoad()
+    
     originalTopMargin = topMarginConstraint.constant
+    locationManager.delegate = self
+    locationManager.requestWhenInUseAuthorization()
+    
+    if CLLocationManager.locationServicesEnabled() {
+      locationManager.desiredAccuracy = kCLLocationAccuracyHundredMeters
+      locationManager.requestLocation()
+    }
+    
+    locationTuples = [(sourceField, nil), (destinationField1, nil), (destinationField2, nil)]
   }
   
   override func viewWillAppear(_ animated: Bool) {
@@ -63,6 +76,11 @@ class ViewController: UIViewController {
     }
     alert.addAction(okButton)
     present(alert, animated: true, completion: nil)
+  }
+  
+  func formatAddressFromPlacemark(placemark: CLPlacemark) -> String {
+    return (placemark.addressDictionary!["FormattedAddressLines"] as!
+      [String]).joined(separator: ", ")
   }
   
   // The remaining methods handle the keyboard resignation/
@@ -115,7 +133,18 @@ extension ViewController: UITextFieldDelegate {
 extension ViewController: CLLocationManagerDelegate {
   
   func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-
+    
+    CLGeocoder().reverseGeocodeLocation(locations.last!) { (placemarks, error) in
+      if let placemarks = placemarks {
+        let placemark = placemarks[0]
+        self.locationTuples[0].mapItem = MKMapItem(placemark:
+          MKPlacemark(coordinate: placemark.location!.coordinate,
+                      addressDictionary: placemark.addressDictionary as! [String:AnyObject]?))
+        self.sourceField.text = self.formatAddressFromPlacemark(placemark: placemark)
+        self.enterButtonArray.filter{$0.tag == 1}.first!.isSelected = true
+      }
+    }
+    
   }
   
   func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
