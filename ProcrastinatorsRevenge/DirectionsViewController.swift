@@ -86,6 +86,7 @@ class DirectionsViewController: UIViewController {
           self.calculateSegmentDirections(index: index+1, time: timeVar, routes: routesVar)
         } else {
           self.hideActivityIndicator()
+          self.showRoute(routes: routesVar)
         }
       } else if let _ = error {
         let alert = UIAlertController(title: nil,
@@ -100,6 +101,30 @@ class DirectionsViewController: UIViewController {
     }
   }
   
+  func showRoute(routes: [MKRoute]) {
+    for i in 0..<routes.count {
+      plotPolyline(route: routes[i])
+    }
+  }
+  
+  func plotPolyline(route: MKRoute) {
+    
+    mapView.add(route.polyline)
+    
+    if mapView.overlays.count == 1 {
+      mapView.setVisibleMapRect(route.polyline.boundingMapRect,
+                                edgePadding: UIEdgeInsetsMake(10.0, 10.0, 10.0, 10.0),
+                                animated: false)
+    }
+    else {
+      let polylineBoundingRect =  MKMapRectUnion(mapView.visibleMapRect,
+                                                 route.polyline.boundingMapRect)
+      mapView.setVisibleMapRect(polylineBoundingRect,
+                                edgePadding: UIEdgeInsetsMake(10.0, 10.0, 10.0, 10.0),
+                                animated: false)
+    }
+  }
+  
 }
 
 extension DirectionsViewController: MKMapViewDelegate {
@@ -107,10 +132,21 @@ extension DirectionsViewController: MKMapViewDelegate {
   func mapView(_ mapView: MKMapView, rendererFor overlay: MKOverlay) -> MKOverlayRenderer {
     
     let polylineRenderer = MKPolylineRenderer(overlay: overlay)
+    
     if (overlay is MKPolyline) {
-      polylineRenderer.strokeColor = UIColor.blue.withAlphaComponent(0.75)
+      if mapView.overlays.count == 1 {
+        polylineRenderer.strokeColor =
+          UIColor.blue.withAlphaComponent(0.75)
+      } else if mapView.overlays.count == 2 {
+        polylineRenderer.strokeColor =
+          UIColor.green.withAlphaComponent(0.75)
+      } else if mapView.overlays.count == 3 {
+        polylineRenderer.strokeColor =
+          UIColor.red.withAlphaComponent(0.75)
+      }
       polylineRenderer.lineWidth = 5
     }
+    
     return polylineRenderer
   }
 }
