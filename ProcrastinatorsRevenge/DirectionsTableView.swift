@@ -55,6 +55,7 @@ extension DirectionsTableView: UITableViewDelegate {
     label.font = UIFont(name: "HoeflerText-Regular", size: 14)
     label.numberOfLines = 5
     setLabelBackgroundColor(label, section: section)
+    label.text = "SEGMENT #\(section+1)\n\nStarting point: \(directionsArray[section].startingAddress)\n"
     
     return label
   }
@@ -65,6 +66,11 @@ extension DirectionsTableView: UITableViewDelegate {
     label.font = UIFont(name: "HoeflerText-Regular", size: 14)
     label.numberOfLines = 8
     setLabelBackgroundColor(label, section: section)
+    
+    let route = directionsArray[section].route
+    let time = route.expectedTravelTime.formatted()
+    let miles = route.distance.miles()
+    label.text = "Ending point: \(directionsArray[section].endingAddress)\n\nDistance: \(miles) miles\n\nExpected Travel Time: \(time)"
     
     return label
   }
@@ -93,12 +99,18 @@ extension DirectionsTableView: UITableViewDataSource {
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     
-    let cell = tableView.dequeueReusableCell(withIdentifier: "DirectionCell") as UITableViewCell!
-    cell?.textLabel?.numberOfLines = 4
-    cell?.textLabel?.font = UIFont(name: "HoeflerText-Regular", size: 12)
-    cell?.isUserInteractionEnabled = false
+    let cell = tableView.dequeueReusableCell(withIdentifier: "DirectionCell")!
+    cell.textLabel?.numberOfLines = 4
+    cell.textLabel?.font = UIFont(name: "HoeflerText-Regular", size: 12)
+    cell.isUserInteractionEnabled = false
     
-    return cell!
+    let steps = directionsArray[indexPath.section].route.steps
+    let step = steps[indexPath.row]
+    let instructions = step.instructions
+    let distance = step.distance.miles()
+    cell.textLabel?.text = "\(indexPath.row+1). \(instructions) - \(distance) miles"
+    
+    return cell
   }
 }
 

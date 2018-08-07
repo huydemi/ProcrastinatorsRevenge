@@ -86,7 +86,7 @@ class DirectionsViewController: UIViewController {
           self.calculateSegmentDirections(index: index+1, time: timeVar, routes: routesVar)
         } else {
           self.hideActivityIndicator()
-          self.showRoute(routes: routesVar)
+          self.showRoute(routes: routesVar, time: timeVar)
         }
       } else if let _ = error {
         let alert = UIAlertController(title: nil,
@@ -101,10 +101,15 @@ class DirectionsViewController: UIViewController {
     }
   }
   
-  func showRoute(routes: [MKRoute]) {
+  func showRoute(routes: [MKRoute], time: TimeInterval) {
+    var directionsArray = [(startingAddress: String, endingAddress: String, route: MKRoute)]()
     for i in 0..<routes.count {
       plotPolyline(route: routes[i])
+      directionsArray += [(startingAddress: locationArray[i].textField.text!,
+                           endingAddress: locationArray[i+1].textField.text!, route: routes[i])]
     }
+    displayDirections(directionsArray: directionsArray)
+    printTimeToLabel(time: time)
   }
   
   func plotPolyline(route: MKRoute) {
@@ -123,6 +128,19 @@ class DirectionsViewController: UIViewController {
                                 edgePadding: UIEdgeInsetsMake(10.0, 10.0, 10.0, 10.0),
                                 animated: false)
     }
+  }
+  
+  func displayDirections(directionsArray: [(startingAddress: String,
+    endingAddress: String, route: MKRoute)]) {
+    directionsTableView.directionsArray = directionsArray
+    directionsTableView.delegate = directionsTableView
+    directionsTableView.dataSource = directionsTableView
+    directionsTableView.reloadData()
+  }
+  
+  func printTimeToLabel(time: TimeInterval) {
+    let timeString = time.formatted()
+    totalTimeLabel.text = "Total Time: \(timeString)"
   }
   
 }
