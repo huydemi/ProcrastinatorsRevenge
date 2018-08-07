@@ -35,9 +35,12 @@ class DirectionsViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
     directionsTableView.contentInset = UIEdgeInsetsMake(-36, 0, -20, 0)
+    addActivityIndicator()
+    calculateSegmentDirections(index: 0, time: 0, routes: [])
   }
-
+  
   func addActivityIndicator() {
     activityIndicator = UIActivityIndicatorView(frame: UIScreen.main.bounds)
     activityIndicator?.activityIndicatorViewStyle = .whiteLarge
@@ -57,6 +60,46 @@ class DirectionsViewController: UIViewController {
     navigationController?.isNavigationBarHidden = false
     automaticallyAdjustsScrollViewInsets = false
   }
+  
+  func calculateSegmentDirections(index: Int,
+                                  time: TimeInterval, routes: [MKRoute]) {
+    
+    let request: MKDirectionsRequest = MKDirectionsRequest()
+    request.source = locationArray[index].mapItem
+    request.destination = locationArray[index+1].mapItem
+    request.requestsAlternateRoutes = true
+    request.transportType = .automobile
+    
+    let directions = MKDirections(request: request)
+    directions.calculate { (response, error) in
+      if let routeResponse = response?.routes {
+        let quickestRouteForSegment: MKRoute =
+          routeResponse.sorted(by: {$0.expectedTravelTime < $1.expectedTravelTime})[0]
+        
+        var timeVar = time
+        var routesVar = routes
+        
+        routesVar.append(quickestRouteForSegment)
+        timeVar += quickestRouteForSegment.expectedTravelTime
+        
+        if index+2 < self.locationArray.count {
+          self.calculateSegmentDirections(index: index+1, time: timeVar, routes: routesVar)
+        } else {
+          self.hideActivityIndicator()
+        }
+      } else if let _ = error {
+        let alert = UIAlertController(title: nil,
+                                      message: "Directions not available.", preferredStyle: .alert)
+        let okButton = UIAlertAction(title: "OK",
+                                     style: .cancel) { (alert) -> Void in
+                                      self.navigationController?.popViewController(animated: true)
+        }
+        alert.addAction(okButton)
+        self.present(alert, animated: true, completion: nil)
+      }
+    }
+  }
+  
 }
 
 extension DirectionsViewController: MKMapViewDelegate {
