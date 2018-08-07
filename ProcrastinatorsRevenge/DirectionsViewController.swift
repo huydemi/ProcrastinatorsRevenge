@@ -31,7 +31,7 @@ class DirectionsViewController: UIViewController {
   @IBOutlet weak var directionsTableView: DirectionsTableView!
   
   var activityIndicator: UIActivityIndicatorView?
-  var locationArray: [(textField: UITextField?, mapItem: MKMapItem?)]!
+  var locationArray: [(textField: UITextField, mapItem: MKMapItem?)]!
   
   override func viewDidLoad() {
     super.viewDidLoad()
